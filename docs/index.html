@@ -11,6 +11,7 @@
     --muted:#9aa6bf;
     --text:#ffffff;
     --primary:#3b82f6;
+    --danger:#ff4d4d;
     --border: rgba(255,255,255,.10);
     --radius:14px;
   }
@@ -24,7 +25,6 @@
   h1{margin:4px 0 14px; text-align:center; font-size:22px}
   h2{margin:16px 0 10px; font-size:16px}
   .muted{color:var(--muted); font-size:12px; line-height:1.35}
-
   .card{
     background: var(--card);
     border: 1px solid var(--border);
@@ -34,6 +34,7 @@
   }
   .row{display:flex; gap:10px; align-items:center}
   .col{flex:1}
+  .grow{flex:1}
   select, input{
     width:100%;
     padding:10px 12px;
@@ -43,6 +44,7 @@
     color: var(--text);
     outline: none;
   }
+  input::placeholder{color: rgba(255,255,255,.35)}
   button{
     padding:10px 12px;
     border-radius: var(--radius);
@@ -60,6 +62,8 @@
     border-color: rgba(255,77,77,.35);
     color: #ffd6d6;
   }
+  .divider{height:1px; background: var(--border); margin:14px 0}
+
   .list{display:flex; flex-direction:column; gap:10px; margin-top:10px}
   .item{
     display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
@@ -70,7 +74,8 @@
   }
   .title{font-weight:900}
   .sub{font-size:12px; color:var(--muted); margin-top:4px}
-  .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+  .right{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+
   .pillRow{display:flex; gap:8px; flex-wrap:wrap}
   .pill{
     flex:1;
@@ -83,7 +88,6 @@
     font-weight:900;
   }
   .pill.primary{background: rgba(59,130,246,.25); border-color: rgba(59,130,246,.55)}
-  .divider{height:1px; background: var(--border); margin:14px 0}
 
   /* Modal */
   .modal{
@@ -124,11 +128,10 @@
   .phase{margin-top:6px; font-size:12px; color:var(--muted); font-weight:800}
 
   .controls{display:flex; gap:10px; margin-top:12px}
-  .grow{flex:1}
 </style>
 </head>
-<body>
 
+<body>
 <h1>Treinos da Semana</h1>
 
 <div class="card">
@@ -141,10 +144,10 @@
 
   <div class="divider"></div>
 
-  <h2>Adicionar exercício</h2>
+  <h2>Registrar exercício do dia</h2>
   <div class="row">
     <div class="col">
-      <div class="muted">Nome</div>
+      <div class="muted">Exercício</div>
       <input id="exName" placeholder="Ex: Supino reto" />
     </div>
   </div>
@@ -155,8 +158,8 @@
       <input id="exSets" inputmode="numeric" placeholder="Ex: 4" />
     </div>
     <div class="col">
-      <div class="muted">Repetições</div>
-      <input id="exReps" inputmode="numeric" placeholder="Ex: 10" />
+      <div class="muted">Reps alvo</div>
+      <input id="exRepsTarget" inputmode="numeric" placeholder="Ex: 12" />
     </div>
   </div>
 
@@ -166,7 +169,7 @@
   </div>
 
   <div class="muted" style="margin-top:10px">
-    Na hora do treino, toque no exercício e inicie um timer (1–5 min) com 1 toque.
+    Toque no exercício para abrir timer e registrar <b>kg</b> e <b>reps feitas</b> da última vez.
   </div>
 </div>
 
@@ -175,7 +178,7 @@
   <div id="list" class="list"></div>
 </div>
 
-<!-- Modal Timer -->
+<!-- Modal (Exercício) -->
 <div class="modal" id="modal" aria-hidden="true">
   <div class="modalCard">
     <div class="modalHeader">
@@ -186,6 +189,30 @@
       <button id="btnClose">Fechar</button>
     </div>
 
+    <div class="card" style="margin:0 0 12px 0;">
+      <div class="muted" style="margin-bottom:6px">Última vez</div>
+      <div id="lastInfo" style="font-weight:900; font-size:16px;">—</div>
+
+      <div class="divider"></div>
+
+      <div class="muted" style="margin-bottom:6px">Registrar agora (vira “última vez”)</div>
+      <div class="row">
+        <div class="col">
+          <div class="muted">KG</div>
+          <input id="inpKg" inputmode="decimal" placeholder="Ex: 60" />
+        </div>
+        <div class="col">
+          <div class="muted">Reps feitas</div>
+          <input id="inpRepsDone" inputmode="numeric" placeholder="Ex: 10" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary grow" id="btnSaveLast">Salvar</button>
+        <button id="btnClearLast">Limpar registro</button>
+      </div>
+      <div class="muted" id="saveHint" style="margin-top:8px"></div>
+    </div>
+
     <div class="timerFace">
       <div class="time" id="tTime">00:00</div>
       <div class="phase" id="tPhase">Escolha um tempo e toque em iniciar</div>
@@ -193,7 +220,7 @@
 
     <div class="divider"></div>
 
-    <div class="muted">Timers rápidos</div>
+    <div class="muted">Timer rápido (1 toque)</div>
     <div class="pillRow" style="margin-top:8px">
       <button class="pill" data-min="1">1 min</button>
       <button class="pill" data-min="2">2 min</button>
@@ -202,8 +229,6 @@
       <button class="pill" data-min="5">5 min</button>
     </div>
 
-    <div class="divider"></div>
-
     <div class="controls">
       <button class="primary grow" id="btnStart">INICIAR</button>
       <button id="btnPause">Pausar</button>
@@ -211,40 +236,69 @@
     </div>
 
     <div class="muted" style="margin-top:10px" id="iosNote"></div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <button class="grow" id="btnEdit">Editar exercício</button>
+      <button class="danger" id="btnDelete">Excluir</button>
+    </div>
+
+    <div id="editBox" class="card" style="display:none; margin-top:12px;">
+      <div class="muted" style="margin-bottom:8px">Editar</div>
+      <div class="row">
+        <div class="col">
+          <div class="muted">Nome</div>
+          <input id="editName" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div class="muted">Séries</div>
+          <input id="editSets" inputmode="numeric" />
+        </div>
+        <div class="col">
+          <div class="muted">Reps alvo</div>
+          <input id="editRepsTarget" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary grow" id="btnSaveEdit">Salvar edição</button>
+        <button id="btnCancelEdit">Cancelar</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 /* =========================
-   Estado / Persistência
+   Persistência
 ========================= */
-const STORAGE_KEY = "treino_simples_v2";
+const STORAGE_KEY = "treino_semana_last_v1";
+const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 
-const DAYS = [
-  "Segunda","Terça","Quarta","Quinta","Sexta","Sábado"
-];
-
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return bootstrap();
-    const s = JSON.parse(raw);
-    if(!s || typeof s !== "object") return bootstrap();
-    if(!s.data) return bootstrap();
-    return s;
-  } catch {
-    return bootstrap();
-  }
-}
 function bootstrap(){
   const data = {};
   for(const d of DAYS) data[d] = [];
   return { selectedDay: "Segunda", data };
 }
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return bootstrap();
+    const s = JSON.parse(raw);
+    if(!s || typeof s !== "object" || !s.data) return bootstrap();
+    // garante dias
+    for(const d of DAYS) if(!Array.isArray(s.data[d])) s.data[d] = [];
+    if(!DAYS.includes(s.selectedDay)) s.selectedDay = "Segunda";
+    return s;
+  } catch { return bootstrap(); }
+}
 function saveState(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   render();
 }
+
 let state = loadState();
 
 /* =========================
@@ -253,7 +307,7 @@ let state = loadState();
 const daySelect = document.getElementById("daySelect");
 const exName = document.getElementById("exName");
 const exSets = document.getElementById("exSets");
-const exReps = document.getElementById("exReps");
+const exRepsTarget = document.getElementById("exRepsTarget");
 const btnAdd = document.getElementById("btnAdd");
 const btnClearDay = document.getElementById("btnClearDay");
 const list = document.getElementById("list");
@@ -263,15 +317,55 @@ const modal = document.getElementById("modal");
 const btnClose = document.getElementById("btnClose");
 const mTitle = document.getElementById("mTitle");
 const mSub = document.getElementById("mSub");
+
+const lastInfo = document.getElementById("lastInfo");
+const inpKg = document.getElementById("inpKg");
+const inpRepsDone = document.getElementById("inpRepsDone");
+const btnSaveLast = document.getElementById("btnSaveLast");
+const btnClearLast = document.getElementById("btnClearLast");
+const saveHint = document.getElementById("saveHint");
+
 const tTime = document.getElementById("tTime");
 const tPhase = document.getElementById("tPhase");
 const btnStart = document.getElementById("btnStart");
 const btnPause = document.getElementById("btnPause");
 const btnReset = document.getElementById("btnReset");
+
 const iosNote = document.getElementById("iosNote");
 
+const btnEdit = document.getElementById("btnEdit");
+const btnDelete = document.getElementById("btnDelete");
+const editBox = document.getElementById("editBox");
+const editName = document.getElementById("editName");
+const editSets = document.getElementById("editSets");
+const editRepsTarget = document.getElementById("editRepsTarget");
+const btnSaveEdit = document.getElementById("btnSaveEdit");
+const btnCancelEdit = document.getElementById("btnCancelEdit");
+
 /* =========================
-   UI Setup
+   Utils
+========================= */
+function uid(){
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
+}
+function formatTime(sec){
+  sec = Math.max(0, sec|0);
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+function nowISO(){
+  const d = new Date();
+  return d.toISOString();
+}
+
+/* =========================
+   Days select
 ========================= */
 function setupDays(){
   daySelect.innerHTML = "";
@@ -289,38 +383,38 @@ daySelect.addEventListener("change", () => {
 });
 
 /* =========================
-   Exercícios CRUD
+   CRUD Exercícios
+   Estrutura do exercício:
+   {
+     id, name, setsTarget, repsTarget,
+     last: { kg, repsDone, atISO } | null
+   }
 ========================= */
-function uid(){
-  return Math.random().toString(16).slice(2) + Date.now().toString(16);
-}
-function escapeHtml(s){
-  return (s||"").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
-}
-
 btnAdd.addEventListener("click", () => {
   const day = state.selectedDay;
   const name = exName.value.trim();
-  const sets = exSets.value.trim();
-  const reps = exReps.value.trim();
-
+  const setsTarget = exSets.value.trim();
+  const repsTarget = exRepsTarget.value.trim();
   if(!name) return;
 
-  // (opcional) evitar duplicado no mesmo dia
+  // evita duplicado no mesmo dia
   const exists = (state.data[day] || []).some(e => e.name.trim().toLowerCase() === name.toLowerCase());
   if(exists){
     alert("Já existe um exercício com esse nome neste dia.");
     return;
   }
 
-  const ex = { id: uid(), name, sets, reps };
-  state.data[day].push(ex);
+  state.data[day].push({
+    id: uid(),
+    name,
+    setsTarget,
+    repsTarget,
+    last: null
+  });
 
   exName.value = "";
   exSets.value = "";
-  exReps.value = "";
+  exRepsTarget.value = "";
 
   saveState();
 });
@@ -333,10 +427,160 @@ btnClearDay.addEventListener("click", () => {
 });
 
 /* =========================
-   Timer Engine (1 segundo)
+   Modal + exercício selecionado
 ========================= */
-let currentExercise = null;
-let chosenSeconds = 60;     // default 1 min
+let current = null; // { day, exId }
+
+function getCurrentExercise(){
+  if(!current) return null;
+  const arr = state.data[current.day] || [];
+  return arr.find(x => x.id === current.exId) || null;
+}
+
+function openModal(day, exId){
+  current = { day, exId };
+  const ex = getCurrentExercise();
+  if(!ex) return;
+
+  mTitle.textContent = ex.name;
+  mSub.textContent = `${ex.setsTarget || "?"} séries x ${ex.repsTarget || "?"} reps (alvo)`;
+
+  renderLast(ex);
+
+  // Timer reset
+  stopTimer();
+  paused = false;
+  setChosenMinutes(1);
+
+  // Edit UI
+  editBox.style.display = "none";
+  saveHint.textContent = "";
+
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
+}
+
+function closeModal(){
+  stopTimer();
+  current = null;
+  editBox.style.display = "none";
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
+}
+
+btnClose.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
+
+function renderLast(ex){
+  if(ex.last && (ex.last.kg || ex.last.repsDone)){
+    const when = ex.last.atISO ? new Date(ex.last.atISO) : null;
+    const whenTxt = when ? ` • ${when.toLocaleDateString("pt-BR")}` : "";
+    lastInfo.textContent = `${ex.last.kg || "?"} kg — ${ex.last.repsDone || "?"} reps${whenTxt}`;
+  } else {
+    lastInfo.textContent = "Sem registro ainda.";
+  }
+  inpKg.value = ex.last?.kg ?? "";
+  inpRepsDone.value = ex.last?.repsDone ?? "";
+}
+
+/* =========================
+   Salvar “última vez”
+========================= */
+btnSaveLast.addEventListener("click", () => {
+  const ex = getCurrentExercise();
+  if(!ex) return;
+
+  const kg = inpKg.value.trim();
+  const repsDone = inpRepsDone.value.trim();
+
+  // permite salvar mesmo com um dos campos vazio, mas não ambos vazios
+  if(!kg && !repsDone){
+    alert("Informe kg e/ou reps feitas.");
+    return;
+  }
+
+  ex.last = { kg, repsDone, atISO: nowISO() };
+  saveHint.textContent = "Salvo como última vez.";
+  saveState();
+
+  // atualiza cabeçalho
+  renderLast(ex);
+});
+
+btnClearLast.addEventListener("click", () => {
+  const ex = getCurrentExercise();
+  if(!ex) return;
+  ex.last = null;
+  inpKg.value = "";
+  inpRepsDone.value = "";
+  saveHint.textContent = "Registro apagado.";
+  saveState();
+  renderLast(ex);
+});
+
+/* =========================
+   Editar / Excluir exercício
+========================= */
+btnEdit.addEventListener("click", () => {
+  const ex = getCurrentExercise();
+  if(!ex) return;
+  editBox.style.display = (editBox.style.display === "none") ? "block" : "none";
+  editName.value = ex.name;
+  editSets.value = ex.setsTarget || "";
+  editRepsTarget.value = ex.repsTarget || "";
+});
+
+btnCancelEdit.addEventListener("click", () => {
+  editBox.style.display = "none";
+});
+
+btnSaveEdit.addEventListener("click", () => {
+  const ex = getCurrentExercise();
+  if(!ex) return;
+
+  const newName = editName.value.trim();
+  const newSets = editSets.value.trim();
+  const newRepsT = editRepsTarget.value.trim();
+  if(!newName){
+    alert("Nome não pode ficar vazio.");
+    return;
+  }
+
+  // checa duplicado no mesmo dia (ignorando o próprio)
+  const arr = state.data[current.day] || [];
+  const dup = arr.some(x => x.id !== ex.id && x.name.trim().toLowerCase() === newName.toLowerCase());
+  if(dup){
+    alert("Já existe um exercício com esse nome neste dia.");
+    return;
+  }
+
+  ex.name = newName;
+  ex.setsTarget = newSets;
+  ex.repsTarget = newRepsT;
+
+  mTitle.textContent = ex.name;
+  mSub.textContent = `${ex.setsTarget || "?"} séries x ${ex.repsTarget || "?"} reps (alvo)`;
+
+  editBox.style.display = "none";
+  saveHint.textContent = "Exercício editado.";
+  saveState();
+});
+
+btnDelete.addEventListener("click", () => {
+  if(!current) return;
+  const ex = getCurrentExercise();
+  if(!ex) return;
+  if(!confirm(`Excluir "${ex.name}"?`)) return;
+
+  state.data[current.day] = (state.data[current.day] || []).filter(x => x.id !== current.exId);
+  saveState();
+  closeModal();
+});
+
+/* =========================
+   Timer (1–5 min)
+========================= */
+let chosenSeconds = 60;
 let remaining = 0;
 let intervalId = null;
 let paused = false;
@@ -348,19 +592,16 @@ function setChosenMinutes(min){
   highlightPills(min);
   tPhase.textContent = `Selecionado: ${min} min. Toque em INICIAR.`;
 }
-
 function startTimer(){
   if(remaining <= 0) remaining = chosenSeconds;
   paused = false;
   tPhase.textContent = "Rodando...";
   if(intervalId) return;
 
-  // garante áudio desbloqueado por gesto
   unlockAudioOnce();
 
   intervalId = setInterval(() => {
     if(paused) return;
-
     if(remaining > 0){
       remaining -= 1;
       updateTimerUI();
@@ -370,12 +611,10 @@ function startTimer(){
     }
   }, 1000);
 }
-
 function pauseTimer(){
   paused = true;
   tPhase.textContent = "Pausado";
 }
-
 function resetTimer(){
   stopTimer();
   paused = false;
@@ -383,111 +622,15 @@ function resetTimer(){
   updateTimerUI();
   tPhase.textContent = "Zerado. Toque em INICIAR.";
 }
-
 function stopTimer(){
   if(intervalId){
     clearInterval(intervalId);
     intervalId = null;
   }
 }
-
 function updateTimerUI(){
   tTime.textContent = formatTime(remaining);
 }
-
-function formatTime(sec){
-  sec = Math.max(0, sec|0);
-  const m = Math.floor(sec/60);
-  const s = sec%60;
-  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-}
-
-/* =========================
-   Som aleatório + vibração
-========================= */
-let audioCtx = null;
-let audioUnlocked = false;
-
-function unlockAudioOnce(){
-  if(audioUnlocked) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    // um “click” inaudível curtíssimo pra destravar
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    g.gain.value = 0.0001;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start();
-    o.stop(audioCtx.currentTime + 0.01);
-    audioUnlocked = true;
-  } catch {}
-}
-
-function playRandomBeep(){
-  try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    const freqs = [440, 523.25, 659.25, 784, 880]; // tons diferentes
-    const f = freqs[Math.floor(Math.random()*freqs.length)];
-
-    osc.type = "sine";
-    osc.frequency.value = f;
-
-    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.4);
-  } catch {}
-}
-
-function tryVibrate(){
-  // iOS Safari/PWA frequentemente não vibra; tentamos do mesmo jeito.
-  try{
-    if("vibrate" in navigator){
-      navigator.vibrate([180, 80, 180]);
-      return true;
-    }
-  } catch {}
-  return false;
-}
-
-function onFinish(){
-  tPhase.textContent = "Tempo finalizado!";
-  playRandomBeep();
-  tryVibrate();
-}
-
-/* =========================
-   Modal (clique no exercício)
-========================= */
-function openModal(ex){
-  currentExercise = ex;
-  mTitle.textContent = ex.name;
-  mSub.textContent = `${ex.sets || "?"} séries x ${ex.reps || "?"} reps`;
-
-  // reset timer state
-  stopTimer();
-  paused = false;
-  setChosenMinutes(1); // default 1 min ao abrir
-  modal.classList.add("show");
-  modal.setAttribute("aria-hidden","false");
-}
-
-function closeModal(){
-  stopTimer();
-  currentExercise = null;
-  modal.classList.remove("show");
-  modal.setAttribute("aria-hidden","true");
-}
-
-btnClose.addEventListener("click", closeModal);
-modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
 
 btnStart.addEventListener("click", startTimer);
 btnPause.addEventListener("click", pauseTimer);
@@ -508,14 +651,74 @@ function highlightPills(activeMin){
 }
 
 /* =========================
+   Som aleatório + vibração
+========================= */
+let audioCtx = null;
+let audioUnlocked = false;
+
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.01);
+    audioUnlocked = true;
+  } catch {}
+}
+
+function playRandomBeep(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const freqs = [440, 523.25, 659.25, 784, 880];
+    const f = freqs[Math.floor(Math.random()*freqs.length)];
+
+    osc.type = "sine";
+    osc.frequency.value = f;
+
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch {}
+}
+
+function tryVibrate(){
+  try{
+    if("vibrate" in navigator){
+      navigator.vibrate([180, 80, 180]);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+function onFinish(){
+  tPhase.textContent = "Tempo finalizado! (toque INICIAR para repetir)";
+  playRandomBeep();
+  tryVibrate();
+}
+
+/* =========================
    Render
 ========================= */
 function render(){
   setupDays();
+
   const day = state.selectedDay;
   listTitle.textContent = `Exercícios — ${day}`;
-
   list.innerHTML = "";
+
   const items = state.data[day] || [];
   if(items.length === 0){
     list.innerHTML = `<div class="muted">Sem exercícios neste dia.</div>`;
@@ -523,26 +726,27 @@ function render(){
   }
 
   for(const ex of items){
+    const lastTxt = ex.last ? `Última: ${escapeHtml(ex.last.kg || "?")}kg • ${escapeHtml(ex.last.repsDone || "?")} reps` : "Sem última vez";
     const el = document.createElement("div");
     el.className = "item";
     el.innerHTML = `
       <div>
-        <div class="title">${escapeHtml(ex.name)}</div>
-        <div class="sub">${escapeHtml(ex.sets || "?")} séries x ${escapeHtml(ex.reps || "?")} reps</div>
-        <div class="sub">Toque para abrir o timer (1–5 min)</div>
+        <div class="title">${escapeHtml(ex.name)} — ${escapeHtml(ex.setsTarget || "?")}x${escapeHtml(ex.repsTarget || "?")}</div>
+        <div class="sub">${lastTxt}</div>
+        <div class="sub">Toque para abrir timer + registrar</div>
       </div>
-      <div class="actions">
+      <div class="right">
         <button class="danger" data-del="1">Excluir</button>
       </div>
     `;
 
     el.addEventListener("click", (evt) => {
-      // se clicou no botão excluir, não abre modal
       if(evt.target && evt.target.getAttribute && evt.target.getAttribute("data-del")) return;
-      openModal(ex);
+      openModal(day, ex.id);
     });
 
     el.querySelector('[data-del="1"]').addEventListener("click", () => {
+      if(!confirm(`Excluir "${ex.name}"?`)) return;
       state.data[day] = (state.data[day] || []).filter(x => x.id !== ex.id);
       saveState();
     });
@@ -551,9 +755,7 @@ function render(){
   }
 }
 
-/* =========================
-   iOS note
-========================= */
+/* iOS note */
 (function(){
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   iosNote.textContent = isIOS
