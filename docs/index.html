@@ -1,159 +1,567 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meu Treino</title>
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Treinos</title>
 <style>
-body{
-    font-family:-apple-system;
-    background:#0f172a;
-    color:white;
-    margin:0;
-    padding:20px;
-}
-h1{text-align:center;margin-bottom:20px}
-select,input{
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --muted:#9aa6bf;
+    --text:#ffffff;
+    --primary:#3b82f6;
+    --border: rgba(255,255,255,.10);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:18px 14px 28px;
+    font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  h1{margin:4px 0 14px; text-align:center; font-size:22px}
+  h2{margin:16px 0 10px; font-size:16px}
+  .muted{color:var(--muted); font-size:12px; line-height:1.35}
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding:14px;
+    margin:12px 0;
+  }
+  .row{display:flex; gap:10px; align-items:center}
+  .col{flex:1}
+  select, input{
     width:100%;
-    padding:10px;
-    margin:6px 0;
-    border-radius:8px;
-    border:none;
-}
-button{
+    padding:10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    color: var(--text);
+    outline: none;
+  }
+  button{
+    padding:10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+    font-weight:800;
+  }
+  button.primary{
+    background: var(--primary);
+    border-color: rgba(59,130,246,.55);
+  }
+  button.danger{
+    background: rgba(255,77,77,.15);
+    border-color: rgba(255,77,77,.35);
+    color: #ffd6d6;
+  }
+  .list{display:flex; flex-direction:column; gap:10px; margin-top:10px}
+  .item{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
     padding:12px;
-    border:none;
-    border-radius:10px;
-    margin-top:8px;
-    background:#3b82f6;
-    color:white;
-    font-weight:bold;
-    width:100%;
-}
-.card{
-    background:#1e293b;
-    padding:15px;
-    border-radius:12px;
-    margin-top:10px;
-}
-.timer{
-    font-size:40px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.03);
+  }
+  .title{font-weight:900}
+  .sub{font-size:12px; color:var(--muted); margin-top:4px}
+  .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+  .pillRow{display:flex; gap:8px; flex-wrap:wrap}
+  .pill{
+    flex:1;
+    min-width: 90px;
     text-align:center;
-    margin-top:10px;
-}
+    padding:10px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,.04);
+    font-weight:900;
+  }
+  .pill.primary{background: rgba(59,130,246,.25); border-color: rgba(59,130,246,.55)}
+  .divider{height:1px; background: var(--border); margin:14px 0}
+
+  /* Modal */
+  .modal{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,.55);
+    display:none;
+    padding:18px;
+  }
+  .modal.show{display:block}
+  .modalCard{
+    max-width:720px;
+    margin: 0 auto;
+    background: var(--card);
+    border:1px solid var(--border);
+    border-radius: 20px;
+    padding:14px;
+  }
+  .modalHeader{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    margin-bottom:10px;
+  }
+  .modalTitle{font-weight:900; font-size:18px}
+  .modalSub{font-size:12px; color:var(--muted); margin-top:4px}
+
+  .timerFace{
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius: 18px;
+    padding:16px;
+    background: rgba(255,255,255,.03);
+  }
+  .time{
+    font-size:56px;
+    font-weight:1000;
+    font-variant-numeric: tabular-nums;
+    letter-spacing:.3px;
+  }
+  .phase{margin-top:6px; font-size:12px; color:var(--muted); font-weight:800}
+
+  .controls{display:flex; gap:10px; margin-top:12px}
+  .grow{flex:1}
 </style>
 </head>
-
 <body>
 
 <h1>Treinos da Semana</h1>
 
-<select id="dia">
-<option>Segunda</option>
-<option>Terça</option>
-<option>Quarta</option>
-<option>Quinta</option>
-<option>Sexta</option>
-<option>Sábado</option>
-<option>Domingo</option>
-</select>
+<div class="card">
+  <div class="row">
+    <div class="col">
+      <div class="muted">Dia</div>
+      <select id="daySelect"></select>
+    </div>
+  </div>
 
-<input id="nome" placeholder="Nome do exercício">
-<input id="series" placeholder="Séries">
-<input id="reps" placeholder="Repetições">
-<button onclick="add()">Adicionar Exercício</button>
+  <div class="divider"></div>
 
-<div id="lista"></div>
+  <h2>Adicionar exercício</h2>
+  <div class="row">
+    <div class="col">
+      <div class="muted">Nome</div>
+      <input id="exName" placeholder="Ex: Supino reto" />
+    </div>
+  </div>
 
-<h2>Timer</h2>
-<input id="tempo" placeholder="Tempo em segundos">
-<button onclick="start()">Iniciar Timer</button>
-<button onclick="reset()">Zerar Timer</button>
+  <div class="row">
+    <div class="col">
+      <div class="muted">Séries</div>
+      <input id="exSets" inputmode="numeric" placeholder="Ex: 4" />
+    </div>
+    <div class="col">
+      <div class="muted">Repetições</div>
+      <input id="exReps" inputmode="numeric" placeholder="Ex: 10" />
+    </div>
+  </div>
 
-<div class="timer" id="display">00:00</div>
+  <div class="row">
+    <button class="primary grow" id="btnAdd">Adicionar</button>
+    <button class="danger" id="btnClearDay" title="Apaga todos os exercícios do dia">Limpar dia</button>
+  </div>
+
+  <div class="muted" style="margin-top:10px">
+    Na hora do treino, toque no exercício e inicie um timer (1–5 min) com 1 toque.
+  </div>
+</div>
+
+<div class="card">
+  <h2 id="listTitle">Exercícios</h2>
+  <div id="list" class="list"></div>
+</div>
+
+<!-- Modal Timer -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modalCard">
+    <div class="modalHeader">
+      <div>
+        <div class="modalTitle" id="mTitle">Exercício</div>
+        <div class="modalSub" id="mSub">—</div>
+      </div>
+      <button id="btnClose">Fechar</button>
+    </div>
+
+    <div class="timerFace">
+      <div class="time" id="tTime">00:00</div>
+      <div class="phase" id="tPhase">Escolha um tempo e toque em iniciar</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="muted">Timers rápidos</div>
+    <div class="pillRow" style="margin-top:8px">
+      <button class="pill" data-min="1">1 min</button>
+      <button class="pill" data-min="2">2 min</button>
+      <button class="pill" data-min="3">3 min</button>
+      <button class="pill" data-min="4">4 min</button>
+      <button class="pill" data-min="5">5 min</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="controls">
+      <button class="primary grow" id="btnStart">INICIAR</button>
+      <button id="btnPause">Pausar</button>
+      <button id="btnReset">Zerar</button>
+    </div>
+
+    <div class="muted" style="margin-top:10px" id="iosNote"></div>
+  </div>
+</div>
 
 <script>
-let treinos = JSON.parse(localStorage.getItem("treinos") || "{}");
+/* =========================
+   Estado / Persistência
+========================= */
+const STORAGE_KEY = "treino_simples_v2";
 
-function salvar(){
-    localStorage.setItem("treinos", JSON.stringify(treinos));
+const DAYS = [
+  "Segunda","Terça","Quarta","Quinta","Sexta","Sábado"
+];
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return bootstrap();
+    const s = JSON.parse(raw);
+    if(!s || typeof s !== "object") return bootstrap();
+    if(!s.data) return bootstrap();
+    return s;
+  } catch {
+    return bootstrap();
+  }
+}
+function bootstrap(){
+  const data = {};
+  for(const d of DAYS) data[d] = [];
+  return { selectedDay: "Segunda", data };
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  render();
+}
+let state = loadState();
+
+/* =========================
+   DOM
+========================= */
+const daySelect = document.getElementById("daySelect");
+const exName = document.getElementById("exName");
+const exSets = document.getElementById("exSets");
+const exReps = document.getElementById("exReps");
+const btnAdd = document.getElementById("btnAdd");
+const btnClearDay = document.getElementById("btnClearDay");
+const list = document.getElementById("list");
+const listTitle = document.getElementById("listTitle");
+
+const modal = document.getElementById("modal");
+const btnClose = document.getElementById("btnClose");
+const mTitle = document.getElementById("mTitle");
+const mSub = document.getElementById("mSub");
+const tTime = document.getElementById("tTime");
+const tPhase = document.getElementById("tPhase");
+const btnStart = document.getElementById("btnStart");
+const btnPause = document.getElementById("btnPause");
+const btnReset = document.getElementById("btnReset");
+const iosNote = document.getElementById("iosNote");
+
+/* =========================
+   UI Setup
+========================= */
+function setupDays(){
+  daySelect.innerHTML = "";
+  for(const d of DAYS){
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = d;
+    if(state.selectedDay === d) opt.selected = true;
+    daySelect.appendChild(opt);
+  }
+}
+daySelect.addEventListener("change", () => {
+  state.selectedDay = daySelect.value;
+  saveState();
+});
+
+/* =========================
+   Exercícios CRUD
+========================= */
+function uid(){
+  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[c]));
 }
 
+btnAdd.addEventListener("click", () => {
+  const day = state.selectedDay;
+  const name = exName.value.trim();
+  const sets = exSets.value.trim();
+  const reps = exReps.value.trim();
+
+  if(!name) return;
+
+  // (opcional) evitar duplicado no mesmo dia
+  const exists = (state.data[day] || []).some(e => e.name.trim().toLowerCase() === name.toLowerCase());
+  if(exists){
+    alert("Já existe um exercício com esse nome neste dia.");
+    return;
+  }
+
+  const ex = { id: uid(), name, sets, reps };
+  state.data[day].push(ex);
+
+  exName.value = "";
+  exSets.value = "";
+  exReps.value = "";
+
+  saveState();
+});
+
+btnClearDay.addEventListener("click", () => {
+  const day = state.selectedDay;
+  if(!confirm(`Apagar todos os exercícios de ${day}?`)) return;
+  state.data[day] = [];
+  saveState();
+});
+
+/* =========================
+   Timer Engine (1 segundo)
+========================= */
+let currentExercise = null;
+let chosenSeconds = 60;     // default 1 min
+let remaining = 0;
+let intervalId = null;
+let paused = false;
+
+function setChosenMinutes(min){
+  chosenSeconds = min * 60;
+  remaining = chosenSeconds;
+  updateTimerUI();
+  highlightPills(min);
+  tPhase.textContent = `Selecionado: ${min} min. Toque em INICIAR.`;
+}
+
+function startTimer(){
+  if(remaining <= 0) remaining = chosenSeconds;
+  paused = false;
+  tPhase.textContent = "Rodando...";
+  if(intervalId) return;
+
+  // garante áudio desbloqueado por gesto
+  unlockAudioOnce();
+
+  intervalId = setInterval(() => {
+    if(paused) return;
+
+    if(remaining > 0){
+      remaining -= 1;
+      updateTimerUI();
+    } else {
+      stopTimer();
+      onFinish();
+    }
+  }, 1000);
+}
+
+function pauseTimer(){
+  paused = true;
+  tPhase.textContent = "Pausado";
+}
+
+function resetTimer(){
+  stopTimer();
+  paused = false;
+  remaining = chosenSeconds;
+  updateTimerUI();
+  tPhase.textContent = "Zerado. Toque em INICIAR.";
+}
+
+function stopTimer(){
+  if(intervalId){
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+}
+
+function updateTimerUI(){
+  tTime.textContent = formatTime(remaining);
+}
+
+function formatTime(sec){
+  sec = Math.max(0, sec|0);
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+}
+
+/* =========================
+   Som aleatório + vibração
+========================= */
+let audioCtx = null;
+let audioUnlocked = false;
+
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    // um “click” inaudível curtíssimo pra destravar
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    g.gain.value = 0.0001;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + 0.01);
+    audioUnlocked = true;
+  } catch {}
+}
+
+function playRandomBeep(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const freqs = [440, 523.25, 659.25, 784, 880]; // tons diferentes
+    const f = freqs[Math.floor(Math.random()*freqs.length)];
+
+    osc.type = "sine";
+    osc.frequency.value = f;
+
+    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch {}
+}
+
+function tryVibrate(){
+  // iOS Safari/PWA frequentemente não vibra; tentamos do mesmo jeito.
+  try{
+    if("vibrate" in navigator){
+      navigator.vibrate([180, 80, 180]);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+function onFinish(){
+  tPhase.textContent = "Tempo finalizado!";
+  playRandomBeep();
+  tryVibrate();
+}
+
+/* =========================
+   Modal (clique no exercício)
+========================= */
+function openModal(ex){
+  currentExercise = ex;
+  mTitle.textContent = ex.name;
+  mSub.textContent = `${ex.sets || "?"} séries x ${ex.reps || "?"} reps`;
+
+  // reset timer state
+  stopTimer();
+  paused = false;
+  setChosenMinutes(1); // default 1 min ao abrir
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
+}
+
+function closeModal(){
+  stopTimer();
+  currentExercise = null;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden","true");
+}
+
+btnClose.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
+
+btnStart.addEventListener("click", startTimer);
+btnPause.addEventListener("click", pauseTimer);
+btnReset.addEventListener("click", resetTimer);
+
+document.querySelectorAll(".pill[data-min]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const min = parseInt(btn.getAttribute("data-min"), 10);
+    setChosenMinutes(min);
+  });
+});
+
+function highlightPills(activeMin){
+  document.querySelectorAll(".pill[data-min]").forEach(b => {
+    const m = parseInt(b.getAttribute("data-min"), 10);
+    b.classList.toggle("primary", m === activeMin);
+  });
+}
+
+/* =========================
+   Render
+========================= */
 function render(){
-    let lista = document.getElementById("lista");
-    let dia = document.getElementById("dia").value;
-    lista.innerHTML = "";
+  setupDays();
+  const day = state.selectedDay;
+  listTitle.textContent = `Exercícios — ${day}`;
 
-    if(!treinos[dia]) return;
+  list.innerHTML = "";
+  const items = state.data[day] || [];
+  if(items.length === 0){
+    list.innerHTML = `<div class="muted">Sem exercícios neste dia.</div>`;
+    return;
+  }
 
-    treinos[dia].forEach((t,i)=>{
-        lista.innerHTML += `
-        <div class="card">
-            <b>${t.nome}</b><br>
-            ${t.series} séries x ${t.reps} reps<br>
-            <button onclick="remover('${dia}',${i})">Excluir</button>
-        </div>`;
+  for(const ex of items){
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <div>
+        <div class="title">${escapeHtml(ex.name)}</div>
+        <div class="sub">${escapeHtml(ex.sets || "?")} séries x ${escapeHtml(ex.reps || "?")} reps</div>
+        <div class="sub">Toque para abrir o timer (1–5 min)</div>
+      </div>
+      <div class="actions">
+        <button class="danger" data-del="1">Excluir</button>
+      </div>
+    `;
+
+    el.addEventListener("click", (evt) => {
+      // se clicou no botão excluir, não abre modal
+      if(evt.target && evt.target.getAttribute && evt.target.getAttribute("data-del")) return;
+      openModal(ex);
     });
+
+    el.querySelector('[data-del="1"]').addEventListener("click", () => {
+      state.data[day] = (state.data[day] || []).filter(x => x.id !== ex.id);
+      saveState();
+    });
+
+    list.appendChild(el);
+  }
 }
 
-function add(){
-    let dia = document.getElementById("dia").value;
-    let nome = document.getElementById("nome").value;
-    let series = document.getElementById("series").value;
-    let reps = document.getElementById("reps").value;
+/* =========================
+   iOS note
+========================= */
+(function(){
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  iosNote.textContent = isIOS
+    ? "Nota: no iPhone, vibração via navegador/PWA pode não funcionar. O som funciona (iniciado por toque)."
+    : "Som + vibração dependem do suporte do dispositivo/navegador.";
+})();
 
-    if(!nome) return;
-
-    if(!treinos[dia]) treinos[dia] = [];
-
-    treinos[dia].push({nome,series,reps});
-    salvar();
-    render();
-
-    document.getElementById("nome").value="";
-    document.getElementById("series").value="";
-    document.getElementById("reps").value="";
-}
-
-function remover(dia,i){
-    treinos[dia].splice(i,1);
-    salvar();
-    render();
-}
-
-document.getElementById("dia").addEventListener("change", render);
 render();
-
-// TIMER
-let intervalo;
-let restante=0;
-
-function start(){
-    restante = parseInt(document.getElementById("tempo").value);
-    if(!restante) return;
-
-    clearInterval(intervalo);
-
-    intervalo = setInterval(()=>{
-        if(restante <= 0){
-            clearInterval(intervalo);
-            alert("Tempo finalizado!");
-        }
-
-        document.getElementById("display").innerText =
-            Math.floor(restante/60).toString().padStart(2,'0') + ":" +
-            (restante%60).toString().padStart(2,'0');
-
-        restante--;
-    },1000);
-}
-
-function reset(){
-    clearInterval(intervalo);
-    document.getElementById("display").innerText="00:00";
-}
 </script>
-
 </body>
 </html>
