@@ -1,1 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Treino</title>
 
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- iOS icon (opcional). Se não colocar, o iOS cria um ícone “genérico”. -->
+  <!-- <link rel="apple-touch-icon" href="./icons/icon-192.png"> -->
+</head>
+
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="title">Treino</div>
+          <div class="subtitle" id="activePlanLabel">Carregando…</div>
+        </div>
+      </div>
+
+      <button class="btn ghost" id="btnExport" title="Exportar backup">Exportar</button>
+    </header>
+
+    <main class="content">
+      <!-- Tab bar -->
+      <nav class="tabs">
+        <button class="tab active" data-tab="plans">Treinos</button>
+        <button class="tab" data-tab="week">Semana</button>
+        <button class="tab" data-tab="settings">Ajustes</button>
+      </nav>
+
+      <!-- Treinos -->
+      <section class="panel show" id="tab-plans">
+        <div class="card">
+          <div class="cardTitle">Criar treino</div>
+          <div class="row">
+            <input id="newPlanName" class="input" placeholder="Nome do treino (ex: ABC, PPL…)" />
+            <button id="btnAddPlan" class="btn primary">Adicionar</button>
+          </div>
+          <div class="hint">Dica: deslize na lista (ou use botões) para ativar/excluir.</div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Meus treinos</div>
+          <div id="plansList" class="list"></div>
+        </div>
+
+        <div class="card" id="editorCard" style="display:none;">
+          <div class="cardTitle">Editar treino</div>
+
+          <div class="grid2">
+            <div>
+              <label class="label">Nome</label>
+              <input id="editPlanName" class="input" />
+            </div>
+            <div>
+              <label class="label">Ativo</label>
+              <button id="btnSetActive" class="btn">Definir como ativo</button>
+            </div>
+          </div>
+
+          <label class="label">Observações</label>
+          <textarea id="editPlanNotes" class="textarea" rows="3" placeholder="Observações do treino..."></textarea>
+
+          <div class="divider"></div>
+
+          <div class="cardTitle">Exercícios por dia</div>
+          <div class="weekdayRow" id="weekdayButtons"></div>
+
+          <div id="dayEditorArea" style="margin-top:12px;"></div>
+        </div>
+      </section>
+
+      <!-- Semana -->
+      <section class="panel" id="tab-week">
+        <div class="card">
+          <div class="cardTitle">Dia</div>
+          <div class="weekdayRow" id="weekDayButtons"></div>
+          <div class="divider"></div>
+
+          <div class="row">
+            <div class="grow">
+              <label class="label">Treino ativo</label>
+              <select id="activePlanSelect" class="select"></select>
+            </div>
+            <button id="btnGoPlans" class="btn">Editar treinos</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle" id="weekHeader">Exercícios</div>
+          <div id="weekExercisesList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- Ajustes -->
+      <section class="panel" id="tab-settings">
+        <div class="card">
+          <div class="cardTitle">Backup / Import</div>
+
+          <div class="row">
+            <button class="btn" id="btnImport">Importar</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none;" />
+            <button class="btn danger" id="btnReset">Apagar tudo</button>
+          </div>
+
+          <div class="hint">
+            Exportar gera um arquivo JSON. Importar restaura seus treinos (só no seu iPhone).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Notificações (iPhone)</div>
+          <div class="hint">
+            Quando um exercício termina, o app tenta disparar uma notificação. No iOS, isso depende de permissões.
+          </div>
+          <button class="btn" id="btnEnableNotifications">Ativar notificações</button>
+          <div class="hint" id="notifStatus"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Timer -->
+    <div class="modal" id="timerModal" aria-hidden="true">
+      <div class="modalCard">
+        <div class="modalHeader">
+          <div>
+            <div class="modalTitle" id="timerTitle">Exercício</div>
+            <div class="modalSub" id="timerSub">Pronto</div>
+          </div>
+          <button class="btn ghost" id="btnCloseTimer">Fechar</button>
+        </div>
+
+        <div class="timerFace">
+          <div class="time" id="timerTime">00:00</div>
+          <div class="phase" id="timerPhase">—</div>
+        </div>
+
+        <div class="timerControls">
+          <button class="btn primary grow" id="btnStartTimer">INICIAR EXERCÍCIO</button>
+          <button class="btn" id="btnPauseTimer">Pausar</button>
+          <button class="btn" id="btnResetTimer">Zerar</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="cardTitle">Configuração do timer</div>
+
+        <div class="row">
+          <label class="pill">
+            <input type="radio" name="mode" value="intervals" checked />
+            Séries
+          </label>
+          <label class="pill">
+            <input type="radio" name="mode" value="simple" />
+            Simples
+          </label>
+        </div>
+
+        <div id="modeIntervals" class="modeBox">
+          <div class="grid3">
+            <div>
+              <label class="label">Séries</label>
+              <input id="cfgSets" class="input" type="number" min="1" max="50" value="4" />
+            </div>
+            <div>
+              <label class="label">Trabalho (seg)</label>
+              <input id="cfgWork" class="input" type="number" min="1" max="3600" value="40" />
+            </div>
+            <div>
+              <label class="label">Descanso (seg)</label>
+              <input id="cfgRest" class="input" type="number" min="0" max="3600" value="20" />
+            </div>
+          </div>
+        </div>
+
+        <div id="modeSimple" class="modeBox" style="display:none;">
+          <div class="grid2">
+            <div>
+              <label class="label">Duração (seg)</label>
+              <input id="cfgSimple" class="input" type="number" min="1" max="10800" value="60" />
+            </div>
+            <div class="hint">
+              Ex.: 300 = 5 minutos.
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="btnSaveTimerConfig">Salvar configuração</button>
+          <div class="hint grow" id="configHint"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="./app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+  </script>
+</body>
+</html>
