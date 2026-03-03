@@ -1,214 +1,159 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0f19" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Treino</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Treino</title>
 
-  <link rel="manifest" href="./manifest.json" />
-  <link rel="stylesheet" href="./styles.css" />
-
-  <!-- iOS icon (opcional). Se não colocar, o iOS cria um ícone “genérico”. -->
-  <!-- <link rel="apple-touch-icon" href="./icons/icon-192.png"> -->
+<style>
+body{
+    font-family:-apple-system;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
+}
+h1{text-align:center;margin-bottom:20px}
+select,input{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:8px;
+    border:none;
+}
+button{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    margin-top:8px;
+    background:#3b82f6;
+    color:white;
+    font-weight:bold;
+    width:100%;
+}
+.card{
+    background:#1e293b;
+    padding:15px;
+    border-radius:12px;
+    margin-top:10px;
+}
+.timer{
+    font-size:40px;
+    text-align:center;
+    margin-top:10px;
+}
+</style>
 </head>
 
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <div class="title">Treino</div>
-          <div class="subtitle" id="activePlanLabel">Carregando…</div>
-        </div>
-      </div>
 
-      <button class="btn ghost" id="btnExport" title="Exportar backup">Exportar</button>
-    </header>
+<h1>Treinos da Semana</h1>
 
-    <main class="content">
-      <!-- Tab bar -->
-      <nav class="tabs">
-        <button class="tab active" data-tab="plans">Treinos</button>
-        <button class="tab" data-tab="week">Semana</button>
-        <button class="tab" data-tab="settings">Ajustes</button>
-      </nav>
+<select id="dia">
+<option>Segunda</option>
+<option>Terça</option>
+<option>Quarta</option>
+<option>Quinta</option>
+<option>Sexta</option>
+<option>Sábado</option>
+<option>Domingo</option>
+</select>
 
-      <!-- Treinos -->
-      <section class="panel show" id="tab-plans">
+<input id="nome" placeholder="Nome do exercício">
+<input id="series" placeholder="Séries">
+<input id="reps" placeholder="Repetições">
+<button onclick="add()">Adicionar Exercício</button>
+
+<div id="lista"></div>
+
+<h2>Timer</h2>
+<input id="tempo" placeholder="Tempo em segundos">
+<button onclick="start()">Iniciar Timer</button>
+<button onclick="reset()">Zerar Timer</button>
+
+<div class="timer" id="display">00:00</div>
+
+<script>
+let treinos = JSON.parse(localStorage.getItem("treinos") || "{}");
+
+function salvar(){
+    localStorage.setItem("treinos", JSON.stringify(treinos));
+}
+
+function render(){
+    let lista = document.getElementById("lista");
+    let dia = document.getElementById("dia").value;
+    lista.innerHTML = "";
+
+    if(!treinos[dia]) return;
+
+    treinos[dia].forEach((t,i)=>{
+        lista.innerHTML += `
         <div class="card">
-          <div class="cardTitle">Criar treino</div>
-          <div class="row">
-            <input id="newPlanName" class="input" placeholder="Nome do treino (ex: ABC, PPL…)" />
-            <button id="btnAddPlan" class="btn primary">Adicionar</button>
-          </div>
-          <div class="hint">Dica: deslize na lista (ou use botões) para ativar/excluir.</div>
-        </div>
+            <b>${t.nome}</b><br>
+            ${t.series} séries x ${t.reps} reps<br>
+            <button onclick="remover('${dia}',${i})">Excluir</button>
+        </div>`;
+    });
+}
 
-        <div class="card">
-          <div class="cardTitle">Meus treinos</div>
-          <div id="plansList" class="list"></div>
-        </div>
+function add(){
+    let dia = document.getElementById("dia").value;
+    let nome = document.getElementById("nome").value;
+    let series = document.getElementById("series").value;
+    let reps = document.getElementById("reps").value;
 
-        <div class="card" id="editorCard" style="display:none;">
-          <div class="cardTitle">Editar treino</div>
+    if(!nome) return;
 
-          <div class="grid2">
-            <div>
-              <label class="label">Nome</label>
-              <input id="editPlanName" class="input" />
-            </div>
-            <div>
-              <label class="label">Ativo</label>
-              <button id="btnSetActive" class="btn">Definir como ativo</button>
-            </div>
-          </div>
+    if(!treinos[dia]) treinos[dia] = [];
 
-          <label class="label">Observações</label>
-          <textarea id="editPlanNotes" class="textarea" rows="3" placeholder="Observações do treino..."></textarea>
+    treinos[dia].push({nome,series,reps});
+    salvar();
+    render();
 
-          <div class="divider"></div>
+    document.getElementById("nome").value="";
+    document.getElementById("series").value="";
+    document.getElementById("reps").value="";
+}
 
-          <div class="cardTitle">Exercícios por dia</div>
-          <div class="weekdayRow" id="weekdayButtons"></div>
+function remover(dia,i){
+    treinos[dia].splice(i,1);
+    salvar();
+    render();
+}
 
-          <div id="dayEditorArea" style="margin-top:12px;"></div>
-        </div>
-      </section>
+document.getElementById("dia").addEventListener("change", render);
+render();
 
-      <!-- Semana -->
-      <section class="panel" id="tab-week">
-        <div class="card">
-          <div class="cardTitle">Dia</div>
-          <div class="weekdayRow" id="weekDayButtons"></div>
-          <div class="divider"></div>
+// TIMER
+let intervalo;
+let restante=0;
 
-          <div class="row">
-            <div class="grow">
-              <label class="label">Treino ativo</label>
-              <select id="activePlanSelect" class="select"></select>
-            </div>
-            <button id="btnGoPlans" class="btn">Editar treinos</button>
-          </div>
-        </div>
+function start(){
+    restante = parseInt(document.getElementById("tempo").value);
+    if(!restante) return;
 
-        <div class="card">
-          <div class="cardTitle" id="weekHeader">Exercícios</div>
-          <div id="weekExercisesList" class="list"></div>
-        </div>
-      </section>
+    clearInterval(intervalo);
 
-      <!-- Ajustes -->
-      <section class="panel" id="tab-settings">
-        <div class="card">
-          <div class="cardTitle">Backup / Import</div>
+    intervalo = setInterval(()=>{
+        if(restante <= 0){
+            clearInterval(intervalo);
+            alert("Tempo finalizado!");
+        }
 
-          <div class="row">
-            <button class="btn" id="btnImport">Importar</button>
-            <input type="file" id="importFile" accept="application/json" style="display:none;" />
-            <button class="btn danger" id="btnReset">Apagar tudo</button>
-          </div>
+        document.getElementById("display").innerText =
+            Math.floor(restante/60).toString().padStart(2,'0') + ":" +
+            (restante%60).toString().padStart(2,'0');
 
-          <div class="hint">
-            Exportar gera um arquivo JSON. Importar restaura seus treinos (só no seu iPhone).
-          </div>
-        </div>
+        restante--;
+    },1000);
+}
 
-        <div class="card">
-          <div class="cardTitle">Notificações (iPhone)</div>
-          <div class="hint">
-            Quando um exercício termina, o app tenta disparar uma notificação. No iOS, isso depende de permissões.
-          </div>
-          <button class="btn" id="btnEnableNotifications">Ativar notificações</button>
-          <div class="hint" id="notifStatus"></div>
-        </div>
-      </section>
-    </main>
+function reset(){
+    clearInterval(intervalo);
+    document.getElementById("display").innerText="00:00";
+}
+</script>
 
-    <!-- Modal: Timer -->
-    <div class="modal" id="timerModal" aria-hidden="true">
-      <div class="modalCard">
-        <div class="modalHeader">
-          <div>
-            <div class="modalTitle" id="timerTitle">Exercício</div>
-            <div class="modalSub" id="timerSub">Pronto</div>
-          </div>
-          <button class="btn ghost" id="btnCloseTimer">Fechar</button>
-        </div>
-
-        <div class="timerFace">
-          <div class="time" id="timerTime">00:00</div>
-          <div class="phase" id="timerPhase">—</div>
-        </div>
-
-        <div class="timerControls">
-          <button class="btn primary grow" id="btnStartTimer">INICIAR EXERCÍCIO</button>
-          <button class="btn" id="btnPauseTimer">Pausar</button>
-          <button class="btn" id="btnResetTimer">Zerar</button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="cardTitle">Configuração do timer</div>
-
-        <div class="row">
-          <label class="pill">
-            <input type="radio" name="mode" value="intervals" checked />
-            Séries
-          </label>
-          <label class="pill">
-            <input type="radio" name="mode" value="simple" />
-            Simples
-          </label>
-        </div>
-
-        <div id="modeIntervals" class="modeBox">
-          <div class="grid3">
-            <div>
-              <label class="label">Séries</label>
-              <input id="cfgSets" class="input" type="number" min="1" max="50" value="4" />
-            </div>
-            <div>
-              <label class="label">Trabalho (seg)</label>
-              <input id="cfgWork" class="input" type="number" min="1" max="3600" value="40" />
-            </div>
-            <div>
-              <label class="label">Descanso (seg)</label>
-              <input id="cfgRest" class="input" type="number" min="0" max="3600" value="20" />
-            </div>
-          </div>
-        </div>
-
-        <div id="modeSimple" class="modeBox" style="display:none;">
-          <div class="grid2">
-            <div>
-              <label class="label">Duração (seg)</label>
-              <input id="cfgSimple" class="input" type="number" min="1" max="10800" value="60" />
-            </div>
-            <div class="hint">
-              Ex.: 300 = 5 minutos.
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <button class="btn" id="btnSaveTimerConfig">Salvar configuração</button>
-          <div class="hint grow" id="configHint"></div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <script src="./app.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
-    }
-  </script>
 </body>
 </html>
