@@ -1,1 +1,1 @@
-# treino-app
+Treino PWA
